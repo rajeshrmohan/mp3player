@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mantra Loop Player</title>
+    <title>Mantra Player</title>
     
-    <!-- PWA / Mobile App Settings -->
+    <!-- Link to Manifest for App Installation -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Mobile App Capabilities -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Mantra Player">
     <meta name="theme-color" content="#1a1a2e">
 
     <style>
@@ -22,13 +24,7 @@
             --glass-border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f13 100%);
@@ -40,24 +36,13 @@
         }
 
         /* --- Header & Visualizer --- */
-        header {
-            padding: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        h1 {
-            font-size: 1.2rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            color: var(--text-muted);
-        }
+        header { padding: 15px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        
+        h1 { font-size: 1rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
 
         .visualizer-container {
             width: 100%;
-            height: 120px;
+            height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -68,332 +53,111 @@
             overflow: hidden;
         }
 
-        canvas {
-            width: 100%;
-            height: 100%;
+        canvas { width: 100%; height: 100%; }
+
+        /* --- Install Button (Hidden by default) --- */
+        #installContainer { display: none; } 
+        #installBtn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.3s;
         }
+        #installBtn:hover { background: var(--primary); color: white; }
 
         /* --- Main Player Area --- */
-        main {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 20px;
-            overflow-y: auto;
-        }
+        main { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 20px; overflow-y: auto; }
 
-        .track-info {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .track-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text-main);
-        }
-
-        .track-status {
-            font-size: 0.9rem;
-            color: var(--primary);
-            min-height: 1.2em;
-        }
+        .track-info { text-align: center; margin-bottom: 20px; }
+        .track-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-status { font-size: 0.9rem; color: var(--primary); min-height: 1.2em; font-weight: bold; }
 
         /* --- Progress Bar --- */
-        .progress-container {
-            width: 100%;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .time-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            min-width: 40px;
-        }
-
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            outline: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            background: var(--primary);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px var(--primary-glow);
-            transition: transform 0.1s;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:active {
-            transform: scale(1.2);
-        }
+        .progress-container { width: 100%; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .time-label { font-size: 0.8rem; color: var(--text-muted); min-width: 40px; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--primary-glow); }
 
         /* --- Controls --- */
-        .controls-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .btn {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn:hover {
-            color: var(--primary);
-        }
-
-        .btn-main {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: var(--bg-panel);
-            border: var(--glass-border);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .btn-main svg {
-            width: 28px;
-            height: 28px;
-            fill: var(--primary);
-        }
-
-        .btn-small svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-muted);
-        }
-
-        .btn-small.active svg {
-            fill: var(--primary);
-        }
+        .controls-row { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 25px; }
+        .btn { background: none; border: none; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-main { width: 70px; height: 70px; border-radius: 50%; background: var(--bg-panel); border: var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn-main svg { width: 28px; height: 28px; fill: var(--primary); }
+        .btn-small svg { width: 24px; height: 24px; fill: var(--text-muted); }
 
         /* --- Repeat Counter Feature --- */
         .repeat-feature {
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: var(--glass-border);
+            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between; border: var(--glass-border);
         }
-
-        .repeat-label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .repeat-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .repeat-controls { display: flex; align-items: center; gap: 10px; }
         .repeat-input {
-            width: 60px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 5px;
-            border-radius: 4px;
-            text-align: center;
-            font-size: 1rem;
+            width: 60px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px;
+            border-radius: 4px; text-align: center; font-size: 1rem; -moz-appearance: textfield;
         }
+        .repeat-input::-webkit-outer-spin-button, .repeat-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .repeat-toggle { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; background: #333; color: #aaa; border: none; }
+        .repeat-toggle.active { background: var(--primary); color: white; box-shadow: 0 0 10px var(--primary-glow); }
 
-        .repeat-toggle {
-            font-size: 0.8rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            background: #333;
-            color: #aaa;
-        }
+        /* --- Playlist --- */
+        .playlist-section { flex-grow: 1; background: var(--bg-panel); border-radius: 16px 16px 0 0; padding: 20px; border-top: var(--glass-border); display: flex; flex-direction: column; }
+        .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .file-btn { background: var(--primary); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; border: none; cursor: pointer; box-shadow: 0 4px 10px var(--primary-glow); font-weight: 600; }
+        .playlist { list-style: none; overflow-y: auto; flex-grow: 1; }
+        .track-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; border-radius: 8px; }
+        .track-item:hover { background: rgba(255,255,255,0.05); }
+        .track-item.active { background: rgba(255, 0, 85, 0.15); border-left: 3px solid var(--primary); }
+        .track-item-name { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+        .remove-track { color: #ff4444; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 0 5px; }
 
-        .repeat-toggle.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        /* --- Playlist & File Input --- */
-        .playlist-section {
-            flex-grow: 1;
-            background: var(--bg-panel);
-            border-radius: 16px 16px 0 0;
-            padding: 20px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border-top: var(--glass-border);
-        }
-
-        .playlist-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .file-btn {
-            background: var(--primary);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 10px var(--primary-glow);
-            font-weight: 600;
-        }
-
-        .playlist {
-            list-style: none;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        .track-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            cursor: pointer;
-            transition: background 0.2s;
-            border-radius: 8px;
-        }
-
-        .track-item:hover {
-            background: rgba(255,255,255,0.05);
-        }
-
-        .track-item.active {
-            background: rgba(255, 0, 85, 0.15);
-            border-left: 3px solid var(--primary);
-        }
-
-        .track-item-name {
-            font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 80%;
-        }
-
-        .remove-track {
-            color: #ff4444;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 0 5px;
-        }
-
-        /* --- Footer --- */
-        footer {
-            text-align: center;
-            padding: 10px;
-            font-size: 0.75rem;
-            color: #555;
-            background: #0a0a0c;
-        }
-
-        /* --- Toast Notification --- */
+        footer { text-align: center; padding: 10px; font-size: 0.75rem; color: #555; background: #0a0a0c; }
+        
         #toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(30, 30, 30, 0.9);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 1000;
-            border: 1px solid #333;
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.95); color: white; padding: 12px 24px;
+            border-radius: 25px; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; z-index: 1000; border: 1px solid #333; text-align: center; width: max-content; max-width: 80%;
         }
-
-        #toast.show {
-            opacity: 1;
-        }
-
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-        }
+        #toast.show { opacity: 1; }
     </style>
 </head>
 <body>
 
     <header>
         <h1>Mantra Player</h1>
-        <div class="visualizer-container">
-            <canvas id="visualizer"></canvas>
+        <div id="installContainer">
+            <button id="installBtn">Install App</button>
         </div>
     </header>
 
     <main>
+        <div class="visualizer-container">
+            <canvas id="visualizer"></canvas>
+        </div>
+        <br>
+
         <div class="track-info">
             <div class="track-title" id="currentTitle">No Track Selected</div>
             <div class="track-status" id="trackStatus">Ready to play</div>
         </div>
 
-        <!-- Progress Bar -->
         <div class="progress-container">
             <span class="time-label" id="currentTime">0:00</span>
             <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
             <span class="time-label" id="duration">0:00</span>
         </div>
 
-        <!-- Playback Controls -->
         <div class="controls-row">
             <button class="btn btn-small" id="btnPrev" title="Previous">
                 <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
             </button>
             
             <button class="btn btn-main" id="btnPlayPause" title="Play/Pause">
-                <!-- Play Icon -->
                 <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                <!-- Pause Icon (Hidden by default) -->
                 <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
             
@@ -402,17 +166,14 @@
             </button>
         </div>
 
-        <!-- Volume Control -->
         <div class="controls-row" style="margin-bottom: 20px;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="#777"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             <input type="range" id="volumeBar" min="0" max="1" step="0.05" value="0.8">
         </div>
 
-        <!-- Special Feature: 108 Counter -->
         <div class="repeat-feature">
-            <div class="repeat-label">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="#aaa"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
-                Custom Loop
+            <div class="repeat-label" style="color:#aaa; font-size:0.9rem;">
+                🔁 Loop Counter (e.g. 108)
             </div>
             <div class="repeat-controls">
                 <input type="number" id="repeatCountInput" class="repeat-input" value="108" min="1">
@@ -421,37 +182,30 @@
         </div>
     </main>
 
-    <!-- Playlist Area -->
     <div class="playlist-section">
         <div class="playlist-header">
             <span>Playlist</span>
             <label for="fileInput" class="file-btn">+ Add MP3</label>
             <input type="file" id="fileInput" accept="audio/mp3, audio/mpeg" multiple style="display:none">
         </div>
-        <ul id="playlist" class="playlist">
-            <!-- Tracks will appear here -->
-        </ul>
+        <ul id="playlist" class="playlist"></ul>
     </div>
 
-    <footer>
-        Developed by Rajesh R Mohan
-    </footer>
-
+    <footer>Developed by Rajesh R Mohan</footer>
     <div id="toast">Message</div>
 
     <script>
-        // --- State Management ---
+        // State
         const state = {
-            playlist: [], // Array of { name, url, file }
+            playlist: [],
             currentIndex: -1,
             isPlaying: false,
             audio: new Audio(),
-            repeatMode: 'none', // 'none', 'all', 'one'
-            customRepeatCount: 0, // The remaining count for custom repeat
-            isCustomRepeatActive: false
+            customRepeatCount: 0,
+            isCustomRepeatActive: false,
+            deferredPrompt: null // For PWA Install
         };
 
-        // --- DOM Elements ---
         const els = {
             playPauseBtn: document.getElementById('btnPlayPause'),
             iconPlay: document.getElementById('iconPlay'),
@@ -469,12 +223,50 @@
             toast: document.getElementById('toast'),
             canvas: document.getElementById('visualizer'),
             repeatInput: document.getElementById('repeatCountInput'),
-            repeatToggleBtn: document.getElementById('btnToggleRepeat')
+            repeatToggleBtn: document.getElementById('btnToggleRepeat'),
+            installBtn: document.getElementById('installBtn'),
+            installContainer: document.getElementById('installContainer')
         };
 
         let audioCtx, analyser, source, canvasCtx;
 
-        // --- Event Listeners ---
+        // --- PWA Install Logic ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            state.deferredPrompt = e;
+            // Update UI to notify the user they can add to home screen
+            els.installContainer.style.display = 'block';
+        });
+
+        els.installBtn.addEventListener('click', async () => {
+            if (state.deferredPrompt) {
+                // Show the install prompt
+                state.deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await state.deferredPrompt.userChoice;
+                // We've used the prompt, and can't use it again, throw it away
+                state.deferredPrompt = null;
+                els.installContainer.style.display = 'none';
+                if(outcome === 'accepted') {
+                    showToast("Installing...");
+                }
+            }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+
+        // --- Core Functions ---
         els.fileInput.addEventListener('change', handleFiles);
         els.playPauseBtn.addEventListener('click', togglePlay);
         els.prevBtn.addEventListener('click', playPrev);
@@ -482,8 +274,7 @@
         els.progressBar.addEventListener('input', seekAudio);
         els.volumeBar.addEventListener('input', changeVolume);
         els.repeatToggleBtn.addEventListener('click', toggleCustomRepeat);
-        
-        // Audio Events
+
         state.audio.addEventListener('timeupdate', updateProgress);
         state.audio.addEventListener('ended', handleTrackEnd);
         state.audio.addEventListener('loadedmetadata', () => {
@@ -493,14 +284,12 @@
         state.audio.addEventListener('play', () => {
             state.isPlaying = true;
             updatePlayPauseIcon();
-            initAudioContext(); // Initialize visualizer on first interaction
+            initAudioContext();
         });
         state.audio.addEventListener('pause', () => {
             state.isPlaying = false;
             updatePlayPauseIcon();
         });
-
-        // --- Core Functions ---
 
         function handleFiles(e) {
             const files = Array.from(e.target.files);
@@ -509,18 +298,13 @@
             let addedCount = 0;
             files.forEach(file => {
                 const url = URL.createObjectURL(file);
-                state.playlist.push({
-                    name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-                    url: url,
-                    file: file
-                });
+                state.playlist.push({ name: file.name.replace(/\.[^/.]+$/, ""), url: url, file: file });
                 addedCount++;
             });
 
             renderPlaylist();
             showToast(`Added ${addedCount} files`);
             
-            // Auto play if first track
             if (state.currentIndex === -1 && state.playlist.length > 0) {
                 loadTrack(0);
                 playTrack();
@@ -529,7 +313,6 @@
 
         function loadTrack(index) {
             if (index < 0 || index >= state.playlist.length) return;
-
             state.currentIndex = index;
             const track = state.playlist[index];
             state.audio.src = track.url;
@@ -539,41 +322,29 @@
             els.progressBar.value = 0;
             els.currentTime.textContent = "0:00";
             
-            // Reset custom repeat counter if we switch tracks manually
-            // If the user wants to repeat the *new* track 108 times, we reset the countdown
             if (state.isCustomRepeatActive) {
                 state.customRepeatCount = parseInt(els.repeatInput.value) || 108;
                 els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
             } else {
                 els.trackStatus.textContent = "Ready to play";
             }
-
             highlightCurrentTrack();
         }
 
         function playTrack() {
-            if (state.currentIndex === -1 && state.playlist.length > 0) {
-                loadTrack(0);
-            }
-            const playPromise = state.audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => console.error("Playback error:", error));
-            }
+            if (state.currentIndex === -1 && state.playlist.length > 0) { loadTrack(0); }
+            state.audio.play().catch(e => console.error(e));
         }
 
         function togglePlay() {
             if (state.playlist.length === 0) return;
-            if (state.audio.paused) {
-                playTrack();
-            } else {
-                state.audio.pause();
-            }
+            if (state.audio.paused) { playTrack(); } else { state.audio.pause(); }
         }
 
         function playNext() {
             if (state.playlist.length === 0) return;
             let nextIndex = state.currentIndex + 1;
-            if (nextIndex >= state.playlist.length) nextIndex = 0; // Loop playlist
+            if (nextIndex >= state.playlist.length) nextIndex = 0;
             loadTrack(nextIndex);
             playTrack();
         }
@@ -587,7 +358,6 @@
         }
 
         function handleTrackEnd() {
-            // Logic: Check Custom Repeat Counter first
             if (state.isCustomRepeatActive) {
                 if (state.customRepeatCount > 0) {
                     state.customRepeatCount--;
@@ -595,83 +365,47 @@
                     state.audio.currentTime = 0;
                     state.audio.play();
                     showToast(`Repeating... (${state.customRepeatCount} left)`);
-                    return; // Stop here, don't go to next track
+                    return;
                 } else {
-                    // Count reached 0
-                    showToast("Custom repeat finished");
-                    playNext(); // Move to next track in playlist
+                    showToast("Custom Loop Finished");
+                    playNext();
                     return;
                 }
             }
-
-            // Standard Logic (if custom repeat is off)
-            if (state.repeatMode === 'one') {
-                state.audio.currentTime = 0;
-                state.audio.play();
-            } else if (state.repeatMode === 'all' || state.currentIndex < state.playlist.length - 1) {
-                playNext();
-            } else {
-                // End of playlist and repeat all is off
-                state.isPlaying = false;
-                updatePlayPauseIcon();
-            }
+            playNext(); 
         }
 
-        // --- Custom Repeat Feature ---
         function toggleCustomRepeat() {
             state.isCustomRepeatActive = !state.isCustomRepeatActive;
-            
             if (state.isCustomRepeatActive) {
-                // Turn ON
                 els.repeatToggleBtn.textContent = "ON";
                 els.repeatToggleBtn.classList.add('active');
-                els.repeatToggleBtn.style.background = "var(--primary)";
-                
                 const count = parseInt(els.repeatInput.value) || 108;
                 state.customRepeatCount = count;
-                
-                // If currently playing a track, update status
-                if (state.currentIndex !== -1) {
-                    els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
-                }
-                showToast(`Custom Repeat Set: ${count} times`);
+                if (state.currentIndex !== -1) els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
+                showToast(`Loop Set: ${count} times`);
             } else {
-                // Turn OFF
                 els.repeatToggleBtn.textContent = "OFF";
                 els.repeatToggleBtn.classList.remove('active');
-                els.repeatToggleBtn.style.background = "#333";
-                els.trackStatus.textContent = "Repeat Off";
-                showToast("Custom Repeat Disabled");
+                els.trackStatus.textContent = "Loop Off";
+                showToast("Loop Disabled");
             }
         }
 
-        // --- UI Updates ---
         function updateProgress() {
             if (!state.audio.duration) return;
             const cur = state.audio.currentTime;
             els.progressBar.value = cur;
             els.currentTime.textContent = formatTime(cur);
-            
-            // Visualizer Draw loop trigger
             if(state.isPlaying) drawVisualizer();
         }
 
-        function seekAudio() {
-            state.audio.currentTime = els.progressBar.value;
-        }
-
-        function changeVolume() {
-            state.audio.volume = els.volumeBar.value;
-        }
+        function seekAudio() { state.audio.currentTime = els.progressBar.value; }
+        function changeVolume() { state.audio.volume = els.volumeBar.value; }
 
         function updatePlayPauseIcon() {
-            if (state.isPlaying) {
-                els.iconPlay.style.display = 'none';
-                els.iconPause.style.display = 'block';
-            } else {
-                els.iconPlay.style.display = 'block';
-                els.iconPause.style.display = 'none';
-            }
+            els.iconPlay.style.display = state.isPlaying ? 'none' : 'block';
+            els.iconPause.style.display = state.isPlaying ? 'block' : 'none';
         }
 
         function renderPlaylist() {
@@ -679,19 +413,12 @@
             state.playlist.forEach((track, index) => {
                 const li = document.createElement('li');
                 li.className = `track-item ${index === state.currentIndex ? 'active' : ''}`;
-                
-                li.innerHTML = `
-                    <span class="track-item-name">${index + 1}. ${track.name}</span>
-                    <button class="remove-track" onclick="removeTrack(${index}, event)">×</button>
-                `;
-                
+                li.innerHTML = `<span class="track-item-name">${index + 1}. ${track.name}</span><button class="remove-track" onclick="removeTrack(${index}, event)">×</button>`;
                 li.addEventListener('click', (e) => {
-                    // Prevent triggering if remove button clicked
                     if (e.target.classList.contains('remove-track')) return;
                     loadTrack(index);
                     playTrack();
                 });
-                
                 els.playlist.appendChild(li);
             });
         }
@@ -704,25 +431,16 @@
             });
         }
 
-        // Exposed to global scope for the inline onclick handler
         window.removeTrack = function(index, event) {
             event.stopPropagation();
-            // Revoke URL to free memory
             URL.revokeObjectURL(state.playlist[index].url);
-            
-            // If removing current track
             if (index === state.currentIndex) {
                 state.audio.pause();
                 state.isPlaying = false;
                 updatePlayPauseIcon();
                 state.currentIndex = -1;
                 els.trackTitle.textContent = "No Track Selected";
-            } 
-            // If removing track before current, adjust index
-            else if (index < state.currentIndex) {
-                state.currentIndex--;
-            }
-
+            } else if (index < state.currentIndex) { state.currentIndex--; }
             state.playlist.splice(index, 1);
             renderPlaylist();
         };
@@ -739,68 +457,45 @@
             return `${min}:${sec < 10 ? '0' + sec : sec}`;
         }
 
-        // --- Audio Visualizer (Canvas) ---
+        // --- Visualizer ---
         function initAudioContext() {
-            if (audioCtx) return; // Already initialized
-
+            if (audioCtx) return;
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioCtx.createAnalyser();
                 source = audioCtx.createMediaElementSource(state.audio);
                 source.connect(analyser);
                 analyser.connect(audioCtx.destination);
-                
-                analyser.fftSize = 64; // Low count for chunky bars
+                analyser.fftSize = 64;
                 const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
-                
                 canvasCtx = els.canvas.getContext('2d');
-                
-                // Resize canvas resolution
                 els.canvas.width = els.canvas.offsetWidth;
                 els.canvas.height = els.canvas.offsetHeight;
-                
-                // Store data in function scope for draw loop
                 window.visualizerData = { dataArray, bufferLength };
-
-            } catch (e) {
-                console.warn("Audio Context init failed (CORS or browser policy)", e);
-            }
+            } catch (e) { console.warn("Audio Context setup failed"); }
         }
 
         function drawVisualizer() {
             if (!window.visualizerData || !state.isPlaying) return;
-            
             const { dataArray, bufferLength } = window.visualizerData;
             analyser.getByteFrequencyData(dataArray);
-            
             const width = els.canvas.width;
             const height = els.canvas.height;
             const barWidth = (width / bufferLength) * 2.5;
-            let barHeight;
             let x = 0;
-
             canvasCtx.clearRect(0, 0, width, height);
-            
-            // Gradient for bars
             const gradient = canvasCtx.createLinearGradient(0, height, 0, 0);
             gradient.addColorStop(0, '#ff0055');
             gradient.addColorStop(1, '#ff99bb');
-
             canvasCtx.fillStyle = gradient;
-
             for(let i = 0; i < bufferLength; i++) {
-                barHeight = dataArray[i] / 255 * height; // Scale to canvas height
-
-                // Draw rounded top bar
+                let barHeight = dataArray[i] / 255 * height;
                 canvasCtx.fillRect(x, height - barHeight, barWidth, barHeight);
-
-                x += barWidth + 2; // Spacing
+                x += barWidth + 2;
             }
-            
             requestAnimationFrame(drawVisualizer);
         }
-
     </script>
 </body>
 </html>
