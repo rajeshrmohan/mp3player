@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mantra Player</title>
     
-    <!-- Link to Manifest for App Installation -->
-    <link rel="manifest" href="manifest.json">
-    
     <!-- Mobile App Capabilities -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
+
+    <!-- Dynamic Manifest Link will be injected here by JS -->
+    <link id="dynamic-manifest" rel="manifest" href="">
 
     <style>
         :root {
@@ -55,7 +55,7 @@
 
         canvas { width: 100%; height: 100%; }
 
-        /* --- Install Button (Hidden by default) --- */
+        /* --- Install Button --- */
         #installContainer { display: none; } 
         #installBtn {
             background: transparent;
@@ -195,7 +195,67 @@
     <div id="toast">Message</div>
 
     <script>
-        // State
+        // --- 1. Dynamic Manifest Generation (Embedded in HTML) ---
+        const manifest = {
+            "name": "Mantra Player",
+            "short_name": "Mantra",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#1a1a2e",
+            "theme_color": "#1a1a2e",
+            "orientation": "portrait",
+            "icons": [
+                {
+                    "src": "https://picsum.photos/seed/mantraIcon192/192/192",
+                    "sizes": "192x192",
+                    "type": "image/jpeg"
+                },
+                {
+                    "src": "https://picsum.photos/seed/mantraIcon512/512/512",
+                    "sizes": "512x512",
+                    "type": "image/jpeg"
+                }
+            ]
+        };
+        
+        const stringManifest = JSON.stringify(manifest);
+        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blobManifest);
+        document.getElementById('dynamic-manifest').setAttribute('href', manifestURL);
+
+
+        // --- 2. Service Worker Generation (Embedded in HTML) ---
+        const swCode = `
+            const CACHE_NAME = 'mantra-player-v1';
+            self.addEventListener('install', (e) => {
+                e.waitUntil(
+                    caches.open(CACHE_NAME).then((cache) => {
+                        return cache.addAll(['./', location.href]);
+                    })
+                );
+            });
+            self.addEventListener('fetch', (e) => {
+                e.respondWith(
+                    caches.match(e.request).then((response) => {
+                        return response || fetch(e.request);
+                    })
+                );
+            });
+        `;
+
+        const blobSW = new Blob([swCode], {type: 'text/javascript'});
+        const swURL = URL.createObjectURL(blobSW);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swURL)
+                .then(reg => console.log('SW Registered'))
+                .catch(err => {
+                    console.warn('SW Registration Failed (Likely due to single-file security restrictions):', err);
+                    // We do not alert user here as app still works without SW
+                });
+        }
+
+        // --- 3. PWA Install Prompt Logic ---
         const state = {
             playlist: [],
             currentIndex: -1,
@@ -203,7 +263,7 @@
             audio: new Audio(),
             customRepeatCount: 0,
             isCustomRepeatActive: false,
-            deferredPrompt: null // For PWA Install
+            deferredPrompt: null
         };
 
         const els = {
@@ -228,45 +288,25 @@
             installContainer: document.getElementById('installContainer')
         };
 
-        let audioCtx, analyser, source, canvasCtx;
-
-        // --- PWA Install Logic ---
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             state.deferredPrompt = e;
-            // Update UI to notify the user they can add to home screen
             els.installContainer.style.display = 'block';
         });
 
         els.installBtn.addEventListener('click', async () => {
             if (state.deferredPrompt) {
-                // Show the install prompt
                 state.deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
                 const { outcome } = await state.deferredPrompt.userChoice;
-                // We've used the prompt, and can't use it again, throw it away
                 state.deferredPrompt = null;
                 els.installContainer.style.display = 'none';
-                if(outcome === 'accepted') {
-                    showToast("Installing...");
-                }
+                if(outcome === 'accepted') showToast("Installing App...");
             }
         });
 
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(registration => {
-                    console.log('SW registered: ', registration);
-                }).catch(registrationError => {
-                    console.log('SW registration failed: ', registrationError);
-                });
-            });
-        }
+        // --- 4. Player Logic ---
+        let audioCtx, analyser, source, canvasCtx;
 
-        // --- Core Functions ---
         els.fileInput.addEventListener('change', handleFiles);
         els.playPauseBtn.addEventListener('click', togglePlay);
         els.prevBtn.addEventListener('click', playPrev);
