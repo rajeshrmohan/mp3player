@@ -28,87 +28,66 @@
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f13 100%);
             color: var(--text-main);
-            height: 100vh; /* Fallback */
-            height: 100dvh; /* Dynamic viewport height for mobile */
+            height: 100vh; height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- Header & Visualizer --- */
         header { padding: 15px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; }
-        
         h1 { font-size: 1rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
 
         .visualizer-container {
-            width: 100%;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-panel);
-            border-radius: 12px;
-            border: var(--glass-border);
-            position: relative;
-            overflow: hidden;
+            width: 100%; height: 100px; display: flex; align-items: center; justify-content: center;
+            background: var(--bg-panel); border-radius: 12px; border: var(--glass-border);
+            position: relative; overflow: hidden;
         }
-
         canvas { width: 100%; height: 100%; }
 
-        /* --- Install Button --- */
+        /* Buttons */
         #installContainer { display: none; } 
         #installBtn {
-            background: rgba(255, 0, 85, 0.1);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            background: rgba(255, 0, 85, 0.1); border: 1px solid var(--primary); color: var(--primary);
+            padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
         #installBtn:hover { background: var(--primary); color: white; }
 
-        /* --- Main Player Area --- */
         main { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 20px; overflow-y: auto; }
 
         .track-info { text-align: center; margin-bottom: 20px; }
         .track-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .track-status { font-size: 0.9rem; color: var(--primary); min-height: 1.2em; font-weight: bold; }
 
-        /* --- Progress Bar --- */
         .progress-container { width: 100%; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
         .time-label { font-size: 0.8rem; color: var(--text-muted); min-width: 40px; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--primary-glow); }
 
-        /* --- Controls --- */
         .controls-row { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 25px; }
         .btn { background: none; border: none; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-main { width: 70px; height: 70px; border-radius: 50%; background: var(--bg-panel); border: var(--glass-border); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .btn-main svg { width: 28px; height: 28px; fill: var(--primary); }
         .btn-small svg { width: 24px; height: 24px; fill: var(--text-muted); }
 
-        /* --- Repeat Feature --- */
         .repeat-feature {
             background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 20px;
             display: flex; align-items: center; justify-content: space-between; border: var(--glass-border);
         }
-        .repeat-controls { display: flex; align-items: center; gap: 10px; }
-        .repeat-input {
-            width: 60px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px;
-            border-radius: 4px; text-align: center; font-size: 1rem; -moz-appearance: textfield;
-        }
+        .repeat-input { width: 60px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px; border-radius: 4px; text-align: center; font-size: 1rem; }
         .repeat-toggle { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; background: #333; color: #aaa; border: none; }
         .repeat-toggle.active { background: var(--primary); color: white; box-shadow: 0 0 10px var(--primary-glow); }
 
-        /* --- Playlist --- */
+        /* Playlist */
         .playlist-section { flex-grow: 1; background: var(--bg-panel); border-radius: 16px 16px 0 0; padding: 20px; border-top: var(--glass-border); display: flex; flex-direction: column; min-height: 150px; }
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .file-btn { background: var(--primary); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; border: none; cursor: pointer; box-shadow: 0 4px 10px var(--primary-glow); font-weight: 600; }
+        
+        .playlist-actions { display: flex; gap: 10px; }
+        
+        .file-btn { background: var(--primary); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: none; cursor: pointer; box-shadow: 0 4px 10px var(--primary-glow); font-weight: 600; }
+        .clear-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
+        .clear-btn:hover { background: #ff4444; color: white; }
+
         .playlist { list-style: none; overflow-y: auto; flex-grow: 1; max-height: 30vh; }
         .track-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; border-radius: 8px; }
         .track-item:hover { background: rgba(255,255,255,0.05); }
@@ -118,7 +97,6 @@
 
         footer { text-align: center; padding: 10px; font-size: 0.75rem; color: #555; background: #0a0a0c; flex-shrink: 0; }
         
-        /* --- Overlays --- */
         #toast {
             position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(30, 30, 30, 0.95); color: white; padding: 12px 24px;
@@ -127,7 +105,6 @@
         }
         #toast.show { opacity: 1; }
 
-        /* IOS Install Modal */
         #iosInstallModal {
             display: none; position: fixed; top:0; left:0; width:100%; height:100%;
             background: rgba(0,0,0,0.85); z-index: 2000;
@@ -170,18 +147,12 @@
         </div>
 
         <div class="controls-row">
-            <button class="btn btn-small" id="btnPrev" title="Previous">
-                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-            </button>
-            
-            <button class="btn btn-main" id="btnPlayPause" title="Play/Pause">
+            <button class="btn btn-small" id="btnPrev"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+            <button class="btn btn-main" id="btnPlayPause">
                 <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
-            
-            <button class="btn btn-small" id="btnNext" title="Next">
-                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-            </button>
+            <button class="btn btn-small" id="btnNext"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
         </div>
 
         <div class="controls-row" style="margin-bottom: 20px;">
@@ -190,9 +161,7 @@
         </div>
 
         <div class="repeat-feature">
-            <div class="repeat-label" style="color:#aaa; font-size:0.9rem;">
-                🔁 Loop Counter (e.g. 108)
-            </div>
+            <div class="repeat-label" style="color:#aaa; font-size:0.9rem;">🔁 Loop Counter</div>
             <div class="repeat-controls">
                 <input type="number" id="repeatCountInput" class="repeat-input" value="108" min="1">
                 <button id="btnToggleRepeat" class="repeat-toggle">OFF</button>
@@ -203,133 +172,144 @@
     <div class="playlist-section">
         <div class="playlist-header">
             <span>Playlist</span>
-            <label for="fileInput" class="file-btn">+ Add MP3</label>
+            <div class="playlist-actions">
+                <button class="clear-btn" id="clearBtn">Clear</button>
+                <label for="fileInput" class="file-btn">+ Add MP3</label>
+            </div>
             <input type="file" id="fileInput" accept="audio/mp3, audio/mpeg" multiple style="display:none">
         </div>
         <ul id="playlist" class="playlist"></ul>
     </div>
 
     <footer>Developed by Rajesh R Mohan</footer>
-    
     <div id="toast">Message</div>
     
     <div id="iosInstallModal" onclick="this.style.display='none'">
         <div class="ios-instruction" onclick="event.stopPropagation()">
             <h3>Install on iOS</h3>
             <p style="margin: 10px 0; color: #ccc;">To install this app on your iPhone/iPad:</p>
-            <p>1. Tap the <strong>Share</strong> button <span class="ios-icon">⎋</span> (at bottom or top).</p>
-            <p>2. Scroll down and tap <strong>"Add to Home Screen"</strong> <span class="ios-icon">⊞</span>.</p>
+            <p>1. Tap the <strong>Share</strong> button <span class="ios-icon">⎋</span>.</p>
+            <p>2. Tap <strong>"Add to Home Screen"</strong> <span class="ios-icon">⊞</span>.</p>
             <br>
-            <button onclick="document.getElementById('iosInstallModal').style.display='none'" style="background:transparent; border:1px solid #555; color:white; padding:8px 20px; border-radius:15px;">Close</button>
+            <button onclick="document.getElementById('iosInstallModal').style.display='none'" style="border:1px solid #555; background:none; color:white; padding:8px 20px; border-radius:15px;">Close</button>
         </div>
     </div>
 
     <script>
-        // --- 1. Dynamic Manifest Generation ---
-        // Using picsum is okay for testing, but real apps should use stable hosted images.
+        // --- 1. Infrastructure (Manifest, SW, Install) ---
         const manifest = {
-            "name": "Mantra Player",
-            "short_name": "Mantra",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#1a1a2e",
-            "theme_color": "#1a1a2e",
-            "orientation": "portrait",
-            "icons": [
-                { "src": "https://picsum.photos/192", "sizes": "192x192", "type": "image/jpeg" },
-                { "src": "https://picsum.photos/512", "sizes": "512x512", "type": "image/jpeg" }
-            ]
+            "name": "Mantra Player", "short_name": "Mantra", "start_url": ".", "display": "standalone",
+            "background_color": "#1a1a2e", "theme_color": "#1a1a2e", "orientation": "portrait",
+            "icons": [{ "src": "https://picsum.photos/192", "sizes": "192x192", "type": "image/jpeg" }]
         };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        document.getElementById('dynamic-manifest').setAttribute('href', URL.createObjectURL(manifestBlob));
+        document.getElementById('dynamic-manifest').setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'})));
 
-        // --- 2. Service Worker (Best Effort for Single File) ---
-        // Note: For Android A2HS to work reliably, this really should be an external 'sw.js' file.
         const swCode = `
             self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
             self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-            self.addEventListener('fetch', e => {
-                // Passthrough to allow audio streaming
-                e.respondWith(fetch(e.request).catch(() => new Response("Offline")));
-            });
+            self.addEventListener('fetch', e => { e.respondWith(fetch(e.request).catch(() => new Response("Offline"))); });
         `;
-        const swBlob = new Blob([swCode], {type: 'text/javascript'});
-        if ('serviceWorker' in navigator) {
-            // We use ./sw.js if it exists, otherwise fallback to blob (blob usually fails PWA install checks)
-            navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-                .then(() => console.log('SW Registered'))
-                .catch(console.error);
-        }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'text/javascript'}))).catch(console.error);
 
-        // --- 3. Install Logic (The Fix) ---
-        const installContainer = document.getElementById('installContainer');
-        const installBtn = document.getElementById('installBtn');
-        const iosModal = document.getElementById('iosInstallModal');
+        // Install Logic
+        const installContainer = document.getElementById('installContainer'), installBtn = document.getElementById('installBtn'), iosModal = document.getElementById('iosInstallModal');
         let deferredPrompt;
+        const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent), isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-        // Detect Platform
-        const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
-        const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-        if (isInStandalone) {
-            installContainer.style.display = 'none'; // Already installed
-        } else if (isIos) {
-            // iOS: Always show button, trigger instruction modal
-            installContainer.style.display = 'block';
-            installBtn.textContent = "Install iOS";
-            installBtn.onclick = () => { iosModal.style.display = 'flex'; };
+        if (isInStandalone) installContainer.style.display = 'none';
+        else if (isIos) {
+            installContainer.style.display = 'block'; installBtn.textContent = "Install iOS"; installBtn.onclick = () => iosModal.style.display = 'flex';
         } else {
-            // Android/Desktop: Wait for event, fallback if it doesn't fire (due to single file limits)
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                installContainer.style.display = 'block';
-                installBtn.textContent = "Install App";
-            });
+            window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installContainer.style.display = 'block'; installBtn.textContent = "Install App"; });
+            setTimeout(() => { if (!deferredPrompt) { installContainer.style.display = 'block'; installBtn.onclick = () => alert("To install: Tap browser menu (⋮) -> 'Install App'."); } }, 2000);
+        }
+        installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; installContainer.style.display = 'none'; } });
 
-            // If prompt never fires (common in single-file), show manual help
-            setTimeout(() => {
-                if (!deferredPrompt) {
-                    installContainer.style.display = 'block';
-                    installBtn.onclick = () => {
-                        alert("To install: Tap your browser menu (⋮) and select 'Install App' or 'Add to Home Screen'.");
-                    };
-                }
-            }, 2000);
+        // --- 2. Database (IndexedDB for Persistent Storage) ---
+        const DB_NAME = 'MantraDB', STORE_NAME = 'tracks';
+        let db;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const d = e.target.result;
+                    if (!d.objectStoreNames.contains(STORE_NAME)) d.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                };
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onerror = (e) => reject(e);
+            });
         }
 
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                if(outcome === 'accepted') installContainer.style.display = 'none';
+        async function saveTrackToDB(file) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction([STORE_NAME], 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const item = { name: file.name.replace(/\.[^/.]+$/, ""), fileData: file, created: new Date() };
+                const req = store.add(item);
+                req.onsuccess = (e) => resolve({ ...item, id: e.target.result });
+                req.onerror = reject;
+            });
+        }
+
+        async function loadTracksFromDB() {
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE_NAME], 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result);
+            });
+        }
+
+        async function clearDB() {
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE_NAME], 'readwrite');
+                tx.objectStore(STORE_NAME).clear();
+                tx.oncomplete = resolve;
+            });
+        }
+
+        async function deleteFromDB(id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE_NAME], 'readwrite');
+                tx.objectStore(STORE_NAME).delete(id);
+                tx.oncomplete = resolve;
+            });
+        }
+
+        // --- 3. Player Logic ---
+        const state = { playlist: [], currentIndex: -1, isPlaying: false, audio: new Audio(), customRepeatCount: 0, isCustomRepeatActive: false };
+
+        const els = {
+            playPauseBtn: document.getElementById('btnPlayPause'), iconPlay: document.getElementById('iconPlay'), iconPause: document.getElementById('iconPause'),
+            prevBtn: document.getElementById('btnPrev'), nextBtn: document.getElementById('btnNext'),
+            progressBar: document.getElementById('progressBar'), currentTime: document.getElementById('currentTime'), duration: document.getElementById('duration'),
+            volumeBar: document.getElementById('volumeBar'), trackTitle: document.getElementById('currentTitle'), trackStatus: document.getElementById('trackStatus'),
+            playlist: document.getElementById('playlist'), fileInput: document.getElementById('fileInput'),
+            toast: document.getElementById('toast'), canvas: document.getElementById('visualizer'),
+            repeatInput: document.getElementById('repeatCountInput'), repeatToggleBtn: document.getElementById('btnToggleRepeat'),
+            clearBtn: document.getElementById('clearBtn')
+        };
+
+        // Initialize App
+        document.body.addEventListener('click', initAudioContext, { once: true });
+        
+        initDB().then(async () => {
+            const tracks = await loadTracksFromDB();
+            if (tracks.length > 0) {
+                tracks.forEach(t => {
+                    // Create URL from stored blob
+                    const url = URL.createObjectURL(t.fileData);
+                    state.playlist.push({ id: t.id, name: t.name, url: url });
+                });
+                renderPlaylist();
+                showToast(`Loaded ${tracks.length} saved tracks`);
+                loadTrack(0);
             }
         });
 
-        // --- 4. Player Logic (Existing) ---
-        const state = {
-            playlist: [], currentIndex: -1, isPlaying: false, audio: new Audio(),
-            customRepeatCount: 0, isCustomRepeatActive: false
-        };
-
-        const els = {
-            playPauseBtn: document.getElementById('btnPlayPause'),
-            iconPlay: document.getElementById('iconPlay'), iconPause: document.getElementById('iconPause'),
-            prevBtn: document.getElementById('btnPrev'), nextBtn: document.getElementById('btnNext'),
-            progressBar: document.getElementById('progressBar'), currentTime: document.getElementById('currentTime'),
-            duration: document.getElementById('duration'), volumeBar: document.getElementById('volumeBar'),
-            trackTitle: document.getElementById('currentTitle'), trackStatus: document.getElementById('trackStatus'),
-            playlist: document.getElementById('playlist'), fileInput: document.getElementById('fileInput'),
-            toast: document.getElementById('toast'), canvas: document.getElementById('visualizer'),
-            repeatInput: document.getElementById('repeatCountInput'), repeatToggleBtn: document.getElementById('btnToggleRepeat')
-        };
-
-        // Enable Audio Context on user interaction (Mobile requirement)
-        document.body.addEventListener('click', initAudioContext, { once: true });
-        document.body.addEventListener('touchstart', initAudioContext, { once: true });
-
         els.fileInput.addEventListener('change', handleFiles);
+        els.clearBtn.addEventListener('click', handleClearPlaylist);
         els.playPauseBtn.addEventListener('click', togglePlay);
         els.prevBtn.addEventListener('click', playPrev);
         els.nextBtn.addEventListener('click', playNext);
@@ -339,27 +319,39 @@
 
         state.audio.addEventListener('timeupdate', updateProgress);
         state.audio.addEventListener('ended', handleTrackEnd);
-        state.audio.addEventListener('loadedmetadata', () => {
-            els.duration.textContent = formatTime(state.audio.duration);
-            els.progressBar.max = state.audio.duration;
-        });
-        state.audio.addEventListener('play', () => {
-            state.isPlaying = true; updatePlayPauseIcon(); initAudioContext();
-        });
-        state.audio.addEventListener('pause', () => {
-            state.isPlaying = false; updatePlayPauseIcon();
-        });
+        state.audio.addEventListener('loadedmetadata', () => { els.duration.textContent = formatTime(state.audio.duration); els.progressBar.max = state.audio.duration; });
+        state.audio.addEventListener('play', () => { state.isPlaying = true; updatePlayPauseIcon(); initAudioContext(); });
+        state.audio.addEventListener('pause', () => { state.isPlaying = false; updatePlayPauseIcon(); });
 
-        function handleFiles(e) {
+        async function handleFiles(e) {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
-            files.forEach(file => {
-                const url = URL.createObjectURL(file);
-                state.playlist.push({ name: file.name.replace(/\.[^/.]+$/, ""), url: url });
-            });
+            showToast("Saving files...");
+            
+            for (const file of files) {
+                try {
+                    const savedTrack = await saveTrackToDB(file);
+                    const url = URL.createObjectURL(file);
+                    state.playlist.push({ id: savedTrack.id, name: savedTrack.name, url: url });
+                } catch (err) { console.error("DB Error", err); }
+            }
             renderPlaylist();
             showToast(`Added ${files.length} tracks`);
             if (state.currentIndex === -1) { loadTrack(0); playTrack(); }
+        }
+
+        async function handleClearPlaylist() {
+            if(!confirm("Delete all songs from storage?")) return;
+            await clearDB();
+            state.audio.pause();
+            state.playlist.forEach(t => URL.revokeObjectURL(t.url));
+            state.playlist = [];
+            state.currentIndex = -1;
+            state.isPlaying = false;
+            els.trackTitle.textContent = "No Track Selected";
+            renderPlaylist();
+            updatePlayPauseIcon();
+            showToast("Playlist Cleared");
         }
 
         function loadTrack(index) {
@@ -383,42 +375,29 @@
 
         function handleTrackEnd() {
             if (state.isCustomRepeatActive && state.customRepeatCount > 1) {
-                state.customRepeatCount--;
-                els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
+                state.customRepeatCount--; els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
                 state.audio.currentTime = 0; state.audio.play();
-            } else {
-                if(state.isCustomRepeatActive) showToast("Loop Finished");
-                playNext();
-            }
+            } else { if(state.isCustomRepeatActive) showToast("Loop Finished"); playNext(); }
         }
 
         function toggleCustomRepeat() {
             state.isCustomRepeatActive = !state.isCustomRepeatActive;
             if (state.isCustomRepeatActive) {
-                els.repeatToggleBtn.textContent = "ON";
-                els.repeatToggleBtn.classList.add('active');
+                els.repeatToggleBtn.textContent = "ON"; els.repeatToggleBtn.classList.add('active');
                 state.customRepeatCount = parseInt(els.repeatInput.value) || 108;
                 if(state.currentIndex !== -1) els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
-            } else {
-                els.repeatToggleBtn.textContent = "OFF";
-                els.repeatToggleBtn.classList.remove('active');
-                els.trackStatus.textContent = "Loop Off";
-            }
+            } else { els.repeatToggleBtn.textContent = "OFF"; els.repeatToggleBtn.classList.remove('active'); els.trackStatus.textContent = "Loop Off"; }
         }
 
         function updateProgress() {
             if (!state.audio.duration) return;
-            els.progressBar.value = state.audio.currentTime;
-            els.currentTime.textContent = formatTime(state.audio.currentTime);
+            els.progressBar.value = state.audio.currentTime; els.currentTime.textContent = formatTime(state.audio.currentTime);
             if(state.isPlaying) drawVisualizer();
         }
 
         function seekAudio() { state.audio.currentTime = els.progressBar.value; }
         function changeVolume() { state.audio.volume = els.volumeBar.value; }
-        function updatePlayPauseIcon() {
-            els.iconPlay.style.display = state.isPlaying ? 'none' : 'block';
-            els.iconPause.style.display = state.isPlaying ? 'block' : 'none';
-        }
+        function updatePlayPauseIcon() { els.iconPlay.style.display = state.isPlaying ? 'none' : 'block'; els.iconPause.style.display = state.isPlaying ? 'block' : 'none'; }
         
         function renderPlaylist() {
             els.playlist.innerHTML = '';
@@ -431,17 +410,17 @@
             });
         }
 
-        function highlightCurrentTrack() {
-            document.querySelectorAll('.track-item').forEach((item, idx) => {
-                item.classList.toggle('active', idx === state.currentIndex);
-            });
-        }
+        function highlightCurrentTrack() { document.querySelectorAll('.track-item').forEach((item, idx) => item.classList.toggle('active', idx === state.currentIndex)); }
 
-        window.removeTrack = function(index, e) {
+        window.removeTrack = async function(index, e) {
             e.stopPropagation();
-            URL.revokeObjectURL(state.playlist[index].url);
+            const track = state.playlist[index];
+            await deleteFromDB(track.id); // Remove from DB
+            URL.revokeObjectURL(track.url);
+            
             if(index === state.currentIndex) { state.audio.pause(); state.currentIndex = -1; els.trackTitle.textContent="No Track"; updatePlayPauseIcon(); }
             else if(index < state.currentIndex) state.currentIndex--;
+            
             state.playlist.splice(index, 1);
             renderPlaylist();
         };
@@ -449,37 +428,24 @@
         function showToast(msg) { els.toast.textContent = msg; els.toast.classList.add('show'); setTimeout(()=>els.toast.classList.remove('show'), 3000); }
         function formatTime(s) { const m=Math.floor(s/60), sec=Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
-        // --- Visualizer ---
         let audioCtx, analyser, source, canvasCtx;
         function initAudioContext() {
             if (audioCtx) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            source = audioCtx.createMediaElementSource(state.audio);
-            source.connect(analyser);
-            analyser.connect(audioCtx.destination);
-            analyser.fftSize = 64;
-            canvasCtx = els.canvas.getContext('2d');
-            els.canvas.width = els.canvas.offsetWidth; els.canvas.height = els.canvas.offsetHeight;
+            analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaElementSource(state.audio);
+            source.connect(analyser); analyser.connect(audioCtx.destination); analyser.fftSize = 64;
+            canvasCtx = els.canvas.getContext('2d'); els.canvas.width = els.canvas.offsetWidth; els.canvas.height = els.canvas.offsetHeight;
         }
 
         function drawVisualizer() {
             if (!analyser) return;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
+            const bufferLength = analyser.frequencyBinCount, dataArray = new Uint8Array(bufferLength);
             analyser.getByteFrequencyData(dataArray);
-            const w = els.canvas.width, h = els.canvas.height;
-            const barW = (w / bufferLength) * 2.5;
-            let x = 0;
-            canvasCtx.clearRect(0, 0, w, h);
-            const grad = canvasCtx.createLinearGradient(0, h, 0, 0);
-            grad.addColorStop(0, '#ff0055'); grad.addColorStop(1, '#ff99bb');
+            const w = els.canvas.width, h = els.canvas.height, barW = (w / bufferLength) * 2.5;
+            let x = 0; canvasCtx.clearRect(0, 0, w, h);
+            const grad = canvasCtx.createLinearGradient(0, h, 0, 0); grad.addColorStop(0, '#ff0055'); grad.addColorStop(1, '#ff99bb');
             canvasCtx.fillStyle = grad;
-            for(let i=0; i<bufferLength; i++) {
-                let barH = dataArray[i]/255 * h;
-                canvasCtx.fillRect(x, h - barH, barW, barH);
-                x += barW + 2;
-            }
+            for(let i=0; i<bufferLength; i++) { let barH = dataArray[i]/255 * h; canvasCtx.fillRect(x, h - barH, barW, barH); x += barW + 2; }
             if(state.isPlaying) requestAnimationFrame(drawVisualizer);
         }
     </script>
