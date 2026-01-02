@@ -29,9 +29,7 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f13 100%);
             color: var(--text-main);
             height: 100vh; height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
         header { padding: 15px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; }
@@ -39,12 +37,10 @@
 
         .visualizer-container {
             width: 100%; height: 100px; display: flex; align-items: center; justify-content: center;
-            background: var(--bg-panel); border-radius: 12px; border: var(--glass-border);
-            position: relative; overflow: hidden;
+            background: var(--bg-panel); border-radius: 12px; border: var(--glass-border); position: relative; overflow: hidden;
         }
         canvas { width: 100%; height: 100%; }
 
-        /* Buttons */
         #installContainer { display: none; } 
         #installBtn {
             background: rgba(255, 0, 85, 0.1); border: 1px solid var(--primary); color: var(--primary);
@@ -78,12 +74,9 @@
         .repeat-toggle { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; background: #333; color: #aaa; border: none; }
         .repeat-toggle.active { background: var(--primary); color: white; box-shadow: 0 0 10px var(--primary-glow); }
 
-        /* Playlist */
         .playlist-section { flex-grow: 1; background: var(--bg-panel); border-radius: 16px 16px 0 0; padding: 20px; border-top: var(--glass-border); display: flex; flex-direction: column; min-height: 150px; }
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
         .playlist-actions { display: flex; gap: 10px; }
-        
         .file-btn { background: var(--primary); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: none; cursor: pointer; box-shadow: 0 4px 10px var(--primary-glow); font-weight: 600; }
         .clear-btn { background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
         .clear-btn:hover { background: #ff4444; color: white; }
@@ -104,6 +97,9 @@
             pointer-events: none; z-index: 1000; border: 1px solid #333; text-align: center; width: max-content; max-width: 80%;
         }
         #toast.show { opacity: 1; }
+
+        /* DB Status Indicator */
+        #dbStatus { font-size: 0.7rem; color: #555; margin-right: 10px; }
 
         #iosInstallModal {
             display: none; position: fixed; top:0; left:0; width:100%; height:100%;
@@ -173,6 +169,7 @@
         <div class="playlist-header">
             <span>Playlist</span>
             <div class="playlist-actions">
+                <span id="dbStatus">Initializing...</span>
                 <button class="clear-btn" id="clearBtn">Clear</button>
                 <label for="fileInput" class="file-btn">+ Add MP3</label>
             </div>
@@ -196,7 +193,7 @@
     </div>
 
     <script>
-        // --- 1. Infrastructure (Manifest, SW, Install) ---
+        // --- 1. Manifest & SW ---
         const manifest = {
             "name": "Mantra Player", "short_name": "Mantra", "start_url": ".", "display": "standalone",
             "background_color": "#1a1a2e", "theme_color": "#1a1a2e", "orientation": "portrait",
@@ -211,57 +208,85 @@
         `;
         if ('serviceWorker' in navigator) navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'text/javascript'}))).catch(console.error);
 
-        // Install Logic
         const installContainer = document.getElementById('installContainer'), installBtn = document.getElementById('installBtn'), iosModal = document.getElementById('iosInstallModal');
         let deferredPrompt;
         const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent), isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
         if (isInStandalone) installContainer.style.display = 'none';
-        else if (isIos) {
-            installContainer.style.display = 'block'; installBtn.textContent = "Install iOS"; installBtn.onclick = () => iosModal.style.display = 'flex';
-        } else {
+        else if (isIos) { installContainer.style.display = 'block'; installBtn.textContent = "Install iOS"; installBtn.onclick = () => iosModal.style.display = 'flex'; }
+        else {
             window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installContainer.style.display = 'block'; installBtn.textContent = "Install App"; });
             setTimeout(() => { if (!deferredPrompt) { installContainer.style.display = 'block'; installBtn.onclick = () => alert("To install: Tap browser menu (⋮) -> 'Install App'."); } }, 2000);
         }
         installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; installContainer.style.display = 'none'; } });
 
-        // --- 2. Database (IndexedDB for Persistent Storage) ---
+        // --- 2. Robust Database Logic ---
         const DB_NAME = 'MantraDB', STORE_NAME = 'tracks';
-        let db;
+        let db = null;
+        let dbEnabled = false;
+        const dbStatusEl = document.getElementById('dbStatus');
 
         function initDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
+                // If using file:// protocol, indexedDB is often disabled
+                if (window.location.protocol === 'file:') {
+                    dbStatusEl.textContent = "No DB (file://)";
+                    console.warn("IndexedDB disabled on file protocol");
+                    return reject("Protocol Restriction");
+                }
+
+                // Bump Version to 2 to ensure clean schema
+                const request = indexedDB.open(DB_NAME, 2); 
+
                 request.onupgradeneeded = (e) => {
                     const d = e.target.result;
-                    if (!d.objectStoreNames.contains(STORE_NAME)) d.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    if (d.objectStoreNames.contains(STORE_NAME)) d.deleteObjectStore(STORE_NAME);
+                    d.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
                 };
-                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
-                request.onerror = (e) => reject(e);
+
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    dbEnabled = true;
+                    dbStatusEl.textContent = "Saved";
+                    dbStatusEl.style.color = "#00ff88";
+                    resolve(db);
+                };
+
+                request.onerror = (e) => {
+                    console.error("DB Open Error:", e);
+                    dbStatusEl.textContent = "DB Error";
+                    dbStatusEl.style.color = "red";
+                    reject(e);
+                };
             });
         }
 
         async function saveTrackToDB(file) {
+            if (!dbEnabled || !db) throw new Error("Database not ready");
             return new Promise((resolve, reject) => {
                 const tx = db.transaction([STORE_NAME], 'readwrite');
                 const store = tx.objectStore(STORE_NAME);
+                // We don't spread the file object, we pass it as a property
                 const item = { name: file.name.replace(/\.[^/.]+$/, ""), fileData: file, created: new Date() };
                 const req = store.add(item);
                 req.onsuccess = (e) => resolve({ ...item, id: e.target.result });
-                req.onerror = reject;
+                req.onerror = (e) => reject(e.target.error);
             });
         }
 
         async function loadTracksFromDB() {
+            if (!dbEnabled || !db) return [];
             return new Promise((resolve) => {
                 const tx = db.transaction([STORE_NAME], 'readonly');
                 const store = tx.objectStore(STORE_NAME);
                 const req = store.getAll();
                 req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve([]);
             });
         }
 
         async function clearDB() {
+            if (!dbEnabled || !db) return;
             return new Promise((resolve) => {
                 const tx = db.transaction([STORE_NAME], 'readwrite');
                 tx.objectStore(STORE_NAME).clear();
@@ -270,6 +295,7 @@
         }
 
         async function deleteFromDB(id) {
+            if (!dbEnabled || !db) return;
             return new Promise((resolve) => {
                 const tx = db.transaction([STORE_NAME], 'readwrite');
                 tx.objectStore(STORE_NAME).delete(id);
@@ -291,22 +317,26 @@
             clearBtn: document.getElementById('clearBtn')
         };
 
-        // Initialize App
         document.body.addEventListener('click', initAudioContext, { once: true });
         
-        initDB().then(async () => {
-            const tracks = await loadTracksFromDB();
-            if (tracks.length > 0) {
-                tracks.forEach(t => {
-                    // Create URL from stored blob
-                    const url = URL.createObjectURL(t.fileData);
-                    state.playlist.push({ id: t.id, name: t.name, url: url });
-                });
-                renderPlaylist();
-                showToast(`Loaded ${tracks.length} saved tracks`);
-                loadTrack(0);
-            }
-        });
+        // Initialize DB and load tracks
+        initDB()
+            .then(async () => {
+                const tracks = await loadTracksFromDB();
+                if (tracks.length > 0) {
+                    tracks.forEach(t => {
+                        const url = URL.createObjectURL(t.fileData);
+                        state.playlist.push({ id: t.id, name: t.name, url: url });
+                    });
+                    renderPlaylist();
+                    showToast(`Loaded ${tracks.length} tracks from DB`);
+                    loadTrack(0);
+                }
+            })
+            .catch(err => {
+                console.warn("Persistence disabled:", err);
+                showToast("Note: Storage disabled (using file://?)");
+            });
 
         els.fileInput.addEventListener('change', handleFiles);
         els.clearBtn.addEventListener('click', handleClearPlaylist);
@@ -326,23 +356,48 @@
         async function handleFiles(e) {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
-            showToast("Saving files...");
+            showToast("Processing files...");
             
+            let saveFailCount = 0;
+
             for (const file of files) {
+                const url = URL.createObjectURL(file);
+                let dbId = null;
+
+                // Try to save to DB, but don't stop playback if it fails
                 try {
-                    const savedTrack = await saveTrackToDB(file);
-                    const url = URL.createObjectURL(file);
-                    state.playlist.push({ id: savedTrack.id, name: savedTrack.name, url: url });
-                } catch (err) { console.error("DB Error", err); }
+                    if (dbEnabled) {
+                        const savedTrack = await saveTrackToDB(file);
+                        dbId = savedTrack.id;
+                    }
+                } catch (err) {
+                    console.warn("Could not save to DB:", err);
+                    saveFailCount++;
+                }
+
+                state.playlist.push({ 
+                    id: dbId || Date.now() + Math.random(), // Fallback ID
+                    name: file.name.replace(/\.[^/.]+$/, ""), 
+                    url: url,
+                    saved: !!dbId 
+                });
             }
+            
             renderPlaylist();
-            showToast(`Added ${files.length} tracks`);
+            
+            if (saveFailCount > 0) {
+                showToast(`Added files (Warning: ${saveFailCount} not saved)`);
+            } else {
+                showToast(`Added ${files.length} tracks`);
+            }
+
             if (state.currentIndex === -1) { loadTrack(0); playTrack(); }
         }
 
         async function handleClearPlaylist() {
-            if(!confirm("Delete all songs from storage?")) return;
-            await clearDB();
+            if(!confirm("Clear playlist? This deletes saved files.")) return;
+            try { await clearDB(); } catch(e) { console.warn(e); }
+            
             state.audio.pause();
             state.playlist.forEach(t => URL.revokeObjectURL(t.url));
             state.playlist = [];
@@ -404,7 +459,9 @@
             state.playlist.forEach((track, index) => {
                 const li = document.createElement('li');
                 li.className = `track-item ${index === state.currentIndex ? 'active' : ''}`;
-                li.innerHTML = `<span class="track-item-name">${index + 1}. ${track.name}</span><button class="remove-track" onclick="removeTrack(${index}, event)">×</button>`;
+                // Add a small dot to indicate if it's saved in DB
+                const savedIndicator = track.saved ? '<span style="color:#00ff88; font-size:0.7rem; margin-right:5px;">●</span>' : '';
+                li.innerHTML = `<span class="track-item-name">${savedIndicator}${index + 1}. ${track.name}</span><button class="remove-track" onclick="removeTrack(${index}, event)">×</button>`;
                 li.onclick = (e) => { if(!e.target.classList.contains('remove-track')) { loadTrack(index); playTrack(); }};
                 els.playlist.appendChild(li);
             });
@@ -415,7 +472,7 @@
         window.removeTrack = async function(index, e) {
             e.stopPropagation();
             const track = state.playlist[index];
-            await deleteFromDB(track.id); // Remove from DB
+            if (track.saved) await deleteFromDB(track.id);
             URL.revokeObjectURL(track.url);
             
             if(index === state.currentIndex) { state.audio.pause(); state.currentIndex = -1; els.trackTitle.textContent="No Track"; updatePlayPauseIcon(); }
