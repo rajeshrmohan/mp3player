@@ -2,16 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Mantra Player</title>
     
-    <!-- Mobile App Capabilities -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
+    <link rel="apple-touch-icon" href="https://picsum.photos/192">
 
-    <!-- Dynamic Manifest Link will be injected here by JS -->
-    <link id="dynamic-manifest" rel="manifest" href="">
+    <link id="dynamic-manifest" rel="manifest">
 
     <style>
         :root {
@@ -29,14 +28,15 @@
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f13 100%);
             color: var(--text-main);
-            height: 100vh;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic viewport height for mobile */
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
         /* --- Header & Visualizer --- */
-        header { padding: 15px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        header { padding: 15px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10; }
         
         h1 { font-size: 1rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
 
@@ -58,14 +58,17 @@
         /* --- Install Button --- */
         #installContainer { display: none; } 
         #installBtn {
-            background: transparent;
+            background: rgba(255, 0, 85, 0.1);
             border: 1px solid var(--primary);
             color: var(--primary);
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         #installBtn:hover { background: var(--primary); color: white; }
 
@@ -89,7 +92,7 @@
         .btn-main svg { width: 28px; height: 28px; fill: var(--primary); }
         .btn-small svg { width: 24px; height: 24px; fill: var(--text-muted); }
 
-        /* --- Repeat Counter Feature --- */
+        /* --- Repeat Feature --- */
         .repeat-feature {
             background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 20px;
             display: flex; align-items: center; justify-content: space-between; border: var(--glass-border);
@@ -99,23 +102,23 @@
             width: 60px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px;
             border-radius: 4px; text-align: center; font-size: 1rem; -moz-appearance: textfield;
         }
-        .repeat-input::-webkit-outer-spin-button, .repeat-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .repeat-toggle { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; background: #333; color: #aaa; border: none; }
         .repeat-toggle.active { background: var(--primary); color: white; box-shadow: 0 0 10px var(--primary-glow); }
 
         /* --- Playlist --- */
-        .playlist-section { flex-grow: 1; background: var(--bg-panel); border-radius: 16px 16px 0 0; padding: 20px; border-top: var(--glass-border); display: flex; flex-direction: column; }
+        .playlist-section { flex-grow: 1; background: var(--bg-panel); border-radius: 16px 16px 0 0; padding: 20px; border-top: var(--glass-border); display: flex; flex-direction: column; min-height: 150px; }
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .file-btn { background: var(--primary); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; border: none; cursor: pointer; box-shadow: 0 4px 10px var(--primary-glow); font-weight: 600; }
-        .playlist { list-style: none; overflow-y: auto; flex-grow: 1; }
+        .playlist { list-style: none; overflow-y: auto; flex-grow: 1; max-height: 30vh; }
         .track-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; border-radius: 8px; }
         .track-item:hover { background: rgba(255,255,255,0.05); }
         .track-item.active { background: rgba(255, 0, 85, 0.15); border-left: 3px solid var(--primary); }
         .track-item-name { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
         .remove-track { color: #ff4444; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 0 5px; }
 
-        footer { text-align: center; padding: 10px; font-size: 0.75rem; color: #555; background: #0a0a0c; }
+        footer { text-align: center; padding: 10px; font-size: 0.75rem; color: #555; background: #0a0a0c; flex-shrink: 0; }
         
+        /* --- Overlays --- */
         #toast {
             position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(30, 30, 30, 0.95); color: white; padding: 12px 24px;
@@ -123,6 +126,21 @@
             pointer-events: none; z-index: 1000; border: 1px solid #333; text-align: center; width: max-content; max-width: 80%;
         }
         #toast.show { opacity: 1; }
+
+        /* IOS Install Modal */
+        #iosInstallModal {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85); z-index: 2000;
+            flex-direction: column; justify-content: flex-end; padding-bottom: 20px;
+        }
+        .ios-instruction {
+            background: #1a1a2e; border-top: 2px solid var(--primary);
+            padding: 20px; border-radius: 20px 20px 0 0; text-align: center;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .ios-icon { font-size: 1.5rem; margin: 0 5px; vertical-align: middle; }
+
     </style>
 </head>
 <body>
@@ -130,7 +148,7 @@
     <header>
         <h1>Mantra Player</h1>
         <div id="installContainer">
-            <button id="installBtn">Install App</button>
+            <button id="installBtn">Install</button>
         </div>
     </header>
 
@@ -192,10 +210,23 @@
     </div>
 
     <footer>Developed by Rajesh R Mohan</footer>
+    
     <div id="toast">Message</div>
+    
+    <div id="iosInstallModal" onclick="this.style.display='none'">
+        <div class="ios-instruction" onclick="event.stopPropagation()">
+            <h3>Install on iOS</h3>
+            <p style="margin: 10px 0; color: #ccc;">To install this app on your iPhone/iPad:</p>
+            <p>1. Tap the <strong>Share</strong> button <span class="ios-icon">⎋</span> (at bottom or top).</p>
+            <p>2. Scroll down and tap <strong>"Add to Home Screen"</strong> <span class="ios-icon">⊞</span>.</p>
+            <br>
+            <button onclick="document.getElementById('iosInstallModal').style.display='none'" style="background:transparent; border:1px solid #555; color:white; padding:8px 20px; border-radius:15px;">Close</button>
+        </div>
+    </div>
 
     <script>
-        // --- 1. Dynamic Manifest Generation (Embedded in HTML) ---
+        // --- 1. Dynamic Manifest Generation ---
+        // Using picsum is okay for testing, but real apps should use stable hosted images.
         const manifest = {
             "name": "Mantra Player",
             "short_name": "Mantra",
@@ -205,107 +236,98 @@
             "theme_color": "#1a1a2e",
             "orientation": "portrait",
             "icons": [
-                {
-                    "src": "https://picsum.photos/seed/mantraIcon192/192/192",
-                    "sizes": "192x192",
-                    "type": "image/jpeg"
-                },
-                {
-                    "src": "https://picsum.photos/seed/mantraIcon512/512/512",
-                    "sizes": "512x512",
-                    "type": "image/jpeg"
-                }
+                { "src": "https://picsum.photos/192", "sizes": "192x192", "type": "image/jpeg" },
+                { "src": "https://picsum.photos/512", "sizes": "512x512", "type": "image/jpeg" }
             ]
         };
-        
-        const stringManifest = JSON.stringify(manifest);
-        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blobManifest);
-        document.getElementById('dynamic-manifest').setAttribute('href', manifestURL);
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        document.getElementById('dynamic-manifest').setAttribute('href', URL.createObjectURL(manifestBlob));
 
-
-        // --- 2. Service Worker Generation (Embedded in HTML) ---
+        // --- 2. Service Worker (Best Effort for Single File) ---
+        // Note: For Android A2HS to work reliably, this really should be an external 'sw.js' file.
         const swCode = `
-            const CACHE_NAME = 'mantra-player-v1';
-            self.addEventListener('install', (e) => {
-                e.waitUntil(
-                    caches.open(CACHE_NAME).then((cache) => {
-                        return cache.addAll(['./', location.href]);
-                    })
-                );
-            });
-            self.addEventListener('fetch', (e) => {
-                e.respondWith(
-                    caches.match(e.request).then((response) => {
-                        return response || fetch(e.request);
-                    })
-                );
+            self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+            self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+            self.addEventListener('fetch', e => {
+                // Passthrough to allow audio streaming
+                e.respondWith(fetch(e.request).catch(() => new Response("Offline")));
             });
         `;
-
-        const blobSW = new Blob([swCode], {type: 'text/javascript'});
-        const swURL = URL.createObjectURL(blobSW);
-
+        const swBlob = new Blob([swCode], {type: 'text/javascript'});
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register(swURL)
-                .then(reg => console.log('SW Registered'))
-                .catch(err => {
-                    console.warn('SW Registration Failed (Likely due to single-file security restrictions):', err);
-                    // We do not alert user here as app still works without SW
-                });
+            // We use ./sw.js if it exists, otherwise fallback to blob (blob usually fails PWA install checks)
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+                .then(() => console.log('SW Registered'))
+                .catch(console.error);
         }
 
-        // --- 3. PWA Install Prompt Logic ---
+        // --- 3. Install Logic (The Fix) ---
+        const installContainer = document.getElementById('installContainer');
+        const installBtn = document.getElementById('installBtn');
+        const iosModal = document.getElementById('iosInstallModal');
+        let deferredPrompt;
+
+        // Detect Platform
+        const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+        const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        if (isInStandalone) {
+            installContainer.style.display = 'none'; // Already installed
+        } else if (isIos) {
+            // iOS: Always show button, trigger instruction modal
+            installContainer.style.display = 'block';
+            installBtn.textContent = "Install iOS";
+            installBtn.onclick = () => { iosModal.style.display = 'flex'; };
+        } else {
+            // Android/Desktop: Wait for event, fallback if it doesn't fire (due to single file limits)
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installContainer.style.display = 'block';
+                installBtn.textContent = "Install App";
+            });
+
+            // If prompt never fires (common in single-file), show manual help
+            setTimeout(() => {
+                if (!deferredPrompt) {
+                    installContainer.style.display = 'block';
+                    installBtn.onclick = () => {
+                        alert("To install: Tap your browser menu (⋮) and select 'Install App' or 'Add to Home Screen'.");
+                    };
+                }
+            }, 2000);
+        }
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                if(outcome === 'accepted') installContainer.style.display = 'none';
+            }
+        });
+
+        // --- 4. Player Logic (Existing) ---
         const state = {
-            playlist: [],
-            currentIndex: -1,
-            isPlaying: false,
-            audio: new Audio(),
-            customRepeatCount: 0,
-            isCustomRepeatActive: false,
-            deferredPrompt: null
+            playlist: [], currentIndex: -1, isPlaying: false, audio: new Audio(),
+            customRepeatCount: 0, isCustomRepeatActive: false
         };
 
         const els = {
             playPauseBtn: document.getElementById('btnPlayPause'),
-            iconPlay: document.getElementById('iconPlay'),
-            iconPause: document.getElementById('iconPause'),
-            prevBtn: document.getElementById('btnPrev'),
-            nextBtn: document.getElementById('btnNext'),
-            progressBar: document.getElementById('progressBar'),
-            currentTime: document.getElementById('currentTime'),
-            duration: document.getElementById('duration'),
-            volumeBar: document.getElementById('volumeBar'),
-            trackTitle: document.getElementById('currentTitle'),
-            trackStatus: document.getElementById('trackStatus'),
-            playlist: document.getElementById('playlist'),
-            fileInput: document.getElementById('fileInput'),
-            toast: document.getElementById('toast'),
-            canvas: document.getElementById('visualizer'),
-            repeatInput: document.getElementById('repeatCountInput'),
-            repeatToggleBtn: document.getElementById('btnToggleRepeat'),
-            installBtn: document.getElementById('installBtn'),
-            installContainer: document.getElementById('installContainer')
+            iconPlay: document.getElementById('iconPlay'), iconPause: document.getElementById('iconPause'),
+            prevBtn: document.getElementById('btnPrev'), nextBtn: document.getElementById('btnNext'),
+            progressBar: document.getElementById('progressBar'), currentTime: document.getElementById('currentTime'),
+            duration: document.getElementById('duration'), volumeBar: document.getElementById('volumeBar'),
+            trackTitle: document.getElementById('currentTitle'), trackStatus: document.getElementById('trackStatus'),
+            playlist: document.getElementById('playlist'), fileInput: document.getElementById('fileInput'),
+            toast: document.getElementById('toast'), canvas: document.getElementById('visualizer'),
+            repeatInput: document.getElementById('repeatCountInput'), repeatToggleBtn: document.getElementById('btnToggleRepeat')
         };
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            state.deferredPrompt = e;
-            els.installContainer.style.display = 'block';
-        });
-
-        els.installBtn.addEventListener('click', async () => {
-            if (state.deferredPrompt) {
-                state.deferredPrompt.prompt();
-                const { outcome } = await state.deferredPrompt.userChoice;
-                state.deferredPrompt = null;
-                els.installContainer.style.display = 'none';
-                if(outcome === 'accepted') showToast("Installing App...");
-            }
-        });
-
-        // --- 4. Player Logic ---
-        let audioCtx, analyser, source, canvasCtx;
+        // Enable Audio Context on user interaction (Mobile requirement)
+        document.body.addEventListener('click', initAudioContext, { once: true });
+        document.body.addEventListener('touchstart', initAudioContext, { once: true });
 
         els.fileInput.addEventListener('change', handleFiles);
         els.playPauseBtn.addEventListener('click', togglePlay);
@@ -322,97 +344,52 @@
             els.progressBar.max = state.audio.duration;
         });
         state.audio.addEventListener('play', () => {
-            state.isPlaying = true;
-            updatePlayPauseIcon();
-            initAudioContext();
+            state.isPlaying = true; updatePlayPauseIcon(); initAudioContext();
         });
         state.audio.addEventListener('pause', () => {
-            state.isPlaying = false;
-            updatePlayPauseIcon();
+            state.isPlaying = false; updatePlayPauseIcon();
         });
 
         function handleFiles(e) {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
-
-            let addedCount = 0;
             files.forEach(file => {
                 const url = URL.createObjectURL(file);
-                state.playlist.push({ name: file.name.replace(/\.[^/.]+$/, ""), url: url, file: file });
-                addedCount++;
+                state.playlist.push({ name: file.name.replace(/\.[^/.]+$/, ""), url: url });
             });
-
             renderPlaylist();
-            showToast(`Added ${addedCount} files`);
-            
-            if (state.currentIndex === -1 && state.playlist.length > 0) {
-                loadTrack(0);
-                playTrack();
-            }
+            showToast(`Added ${files.length} tracks`);
+            if (state.currentIndex === -1) { loadTrack(0); playTrack(); }
         }
 
         function loadTrack(index) {
             if (index < 0 || index >= state.playlist.length) return;
             state.currentIndex = index;
-            const track = state.playlist[index];
-            state.audio.src = track.url;
+            state.audio.src = state.playlist[index].url;
             state.audio.load();
-            
-            els.trackTitle.textContent = track.name;
-            els.progressBar.value = 0;
-            els.currentTime.textContent = "0:00";
-            
-            if (state.isCustomRepeatActive) {
+            els.trackTitle.textContent = state.playlist[index].name;
+            els.progressBar.value = 0; els.currentTime.textContent = "0:00";
+            if(state.isCustomRepeatActive) {
                 state.customRepeatCount = parseInt(els.repeatInput.value) || 108;
                 els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
-            } else {
-                els.trackStatus.textContent = "Ready to play";
-            }
+            } else { els.trackStatus.textContent = "Ready to play"; }
             highlightCurrentTrack();
         }
 
-        function playTrack() {
-            if (state.currentIndex === -1 && state.playlist.length > 0) { loadTrack(0); }
-            state.audio.play().catch(e => console.error(e));
-        }
-
-        function togglePlay() {
-            if (state.playlist.length === 0) return;
-            if (state.audio.paused) { playTrack(); } else { state.audio.pause(); }
-        }
-
-        function playNext() {
-            if (state.playlist.length === 0) return;
-            let nextIndex = state.currentIndex + 1;
-            if (nextIndex >= state.playlist.length) nextIndex = 0;
-            loadTrack(nextIndex);
-            playTrack();
-        }
-
-        function playPrev() {
-            if (state.playlist.length === 0) return;
-            let prevIndex = state.currentIndex - 1;
-            if (prevIndex < 0) prevIndex = state.playlist.length - 1;
-            loadTrack(prevIndex);
-            playTrack();
-        }
+        function playTrack() { state.audio.play().catch(console.warn); }
+        function togglePlay() { state.playlist.length > 0 ? (state.audio.paused ? playTrack() : state.audio.pause()) : null; }
+        function playNext() { if(state.playlist.length) loadTrack((state.currentIndex + 1) % state.playlist.length), playTrack(); }
+        function playPrev() { if(state.playlist.length) loadTrack((state.currentIndex - 1 + state.playlist.length) % state.playlist.length), playTrack(); }
 
         function handleTrackEnd() {
-            if (state.isCustomRepeatActive) {
-                if (state.customRepeatCount > 0) {
-                    state.customRepeatCount--;
-                    els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
-                    state.audio.currentTime = 0;
-                    state.audio.play();
-                    showToast(`Repeating... (${state.customRepeatCount} left)`);
-                    return;
-                } else {
-                    showToast("Custom Loop Finished");
-                    playNext();
-                    return;
-                }
+            if (state.isCustomRepeatActive && state.customRepeatCount > 1) {
+                state.customRepeatCount--;
+                els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
+                state.audio.currentTime = 0; state.audio.play();
+            } else {
+                if(state.isCustomRepeatActive) showToast("Loop Finished");
+                playNext();
             }
-            playNext(); 
         }
 
         function toggleCustomRepeat() {
@@ -420,121 +397,90 @@
             if (state.isCustomRepeatActive) {
                 els.repeatToggleBtn.textContent = "ON";
                 els.repeatToggleBtn.classList.add('active');
-                const count = parseInt(els.repeatInput.value) || 108;
-                state.customRepeatCount = count;
-                if (state.currentIndex !== -1) els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
-                showToast(`Loop Set: ${count} times`);
+                state.customRepeatCount = parseInt(els.repeatInput.value) || 108;
+                if(state.currentIndex !== -1) els.trackStatus.textContent = `Repeats left: ${state.customRepeatCount}`;
             } else {
                 els.repeatToggleBtn.textContent = "OFF";
                 els.repeatToggleBtn.classList.remove('active');
                 els.trackStatus.textContent = "Loop Off";
-                showToast("Loop Disabled");
             }
         }
 
         function updateProgress() {
             if (!state.audio.duration) return;
-            const cur = state.audio.currentTime;
-            els.progressBar.value = cur;
-            els.currentTime.textContent = formatTime(cur);
+            els.progressBar.value = state.audio.currentTime;
+            els.currentTime.textContent = formatTime(state.audio.currentTime);
             if(state.isPlaying) drawVisualizer();
         }
 
         function seekAudio() { state.audio.currentTime = els.progressBar.value; }
         function changeVolume() { state.audio.volume = els.volumeBar.value; }
-
         function updatePlayPauseIcon() {
             els.iconPlay.style.display = state.isPlaying ? 'none' : 'block';
             els.iconPause.style.display = state.isPlaying ? 'block' : 'none';
         }
-
+        
         function renderPlaylist() {
             els.playlist.innerHTML = '';
             state.playlist.forEach((track, index) => {
                 const li = document.createElement('li');
                 li.className = `track-item ${index === state.currentIndex ? 'active' : ''}`;
                 li.innerHTML = `<span class="track-item-name">${index + 1}. ${track.name}</span><button class="remove-track" onclick="removeTrack(${index}, event)">×</button>`;
-                li.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('remove-track')) return;
-                    loadTrack(index);
-                    playTrack();
-                });
+                li.onclick = (e) => { if(!e.target.classList.contains('remove-track')) { loadTrack(index); playTrack(); }};
                 els.playlist.appendChild(li);
             });
         }
 
         function highlightCurrentTrack() {
-            const items = els.playlist.querySelectorAll('.track-item');
-            items.forEach((item, idx) => {
-                if (idx === state.currentIndex) item.classList.add('active');
-                else item.classList.remove('active');
+            document.querySelectorAll('.track-item').forEach((item, idx) => {
+                item.classList.toggle('active', idx === state.currentIndex);
             });
         }
 
-        window.removeTrack = function(index, event) {
-            event.stopPropagation();
+        window.removeTrack = function(index, e) {
+            e.stopPropagation();
             URL.revokeObjectURL(state.playlist[index].url);
-            if (index === state.currentIndex) {
-                state.audio.pause();
-                state.isPlaying = false;
-                updatePlayPauseIcon();
-                state.currentIndex = -1;
-                els.trackTitle.textContent = "No Track Selected";
-            } else if (index < state.currentIndex) { state.currentIndex--; }
+            if(index === state.currentIndex) { state.audio.pause(); state.currentIndex = -1; els.trackTitle.textContent="No Track"; updatePlayPauseIcon(); }
+            else if(index < state.currentIndex) state.currentIndex--;
             state.playlist.splice(index, 1);
             renderPlaylist();
         };
 
-        function showToast(msg) {
-            els.toast.textContent = msg;
-            els.toast.classList.add('show');
-            setTimeout(() => els.toast.classList.remove('show'), 3000);
-        }
-
-        function formatTime(seconds) {
-            const min = Math.floor(seconds / 60);
-            const sec = Math.floor(seconds % 60);
-            return `${min}:${sec < 10 ? '0' + sec : sec}`;
-        }
+        function showToast(msg) { els.toast.textContent = msg; els.toast.classList.add('show'); setTimeout(()=>els.toast.classList.remove('show'), 3000); }
+        function formatTime(s) { const m=Math.floor(s/60), sec=Math.floor(s%60); return `${m}:${sec<10?'0'+sec:sec}`; }
 
         // --- Visualizer ---
+        let audioCtx, analyser, source, canvasCtx;
         function initAudioContext() {
             if (audioCtx) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                source = audioCtx.createMediaElementSource(state.audio);
-                source.connect(analyser);
-                analyser.connect(audioCtx.destination);
-                analyser.fftSize = 64;
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                canvasCtx = els.canvas.getContext('2d');
-                els.canvas.width = els.canvas.offsetWidth;
-                els.canvas.height = els.canvas.offsetHeight;
-                window.visualizerData = { dataArray, bufferLength };
-            } catch (e) { console.warn("Audio Context setup failed"); }
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(state.audio);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 64;
+            canvasCtx = els.canvas.getContext('2d');
+            els.canvas.width = els.canvas.offsetWidth; els.canvas.height = els.canvas.offsetHeight;
         }
 
         function drawVisualizer() {
-            if (!window.visualizerData || !state.isPlaying) return;
-            const { dataArray, bufferLength } = window.visualizerData;
+            if (!analyser) return;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
             analyser.getByteFrequencyData(dataArray);
-            const width = els.canvas.width;
-            const height = els.canvas.height;
-            const barWidth = (width / bufferLength) * 2.5;
+            const w = els.canvas.width, h = els.canvas.height;
+            const barW = (w / bufferLength) * 2.5;
             let x = 0;
-            canvasCtx.clearRect(0, 0, width, height);
-            const gradient = canvasCtx.createLinearGradient(0, height, 0, 0);
-            gradient.addColorStop(0, '#ff0055');
-            gradient.addColorStop(1, '#ff99bb');
-            canvasCtx.fillStyle = gradient;
-            for(let i = 0; i < bufferLength; i++) {
-                let barHeight = dataArray[i] / 255 * height;
-                canvasCtx.fillRect(x, height - barHeight, barWidth, barHeight);
-                x += barWidth + 2;
+            canvasCtx.clearRect(0, 0, w, h);
+            const grad = canvasCtx.createLinearGradient(0, h, 0, 0);
+            grad.addColorStop(0, '#ff0055'); grad.addColorStop(1, '#ff99bb');
+            canvasCtx.fillStyle = grad;
+            for(let i=0; i<bufferLength; i++) {
+                let barH = dataArray[i]/255 * h;
+                canvasCtx.fillRect(x, h - barH, barW, barH);
+                x += barW + 2;
             }
-            requestAnimationFrame(drawVisualizer);
+            if(state.isPlaying) requestAnimationFrame(drawVisualizer);
         }
     </script>
 </body>
